@@ -1,0 +1,12 @@
+# secrets / local config
+.env
+*.env
+!.env.example
+*.pem
+*.key
+id_*
+# build output and caches
+.build/
+__pycache__/
+*.pyc
+node_modules/

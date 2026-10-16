@@ -1,0 +1,14 @@
+services:
+  latex-preview:
+    build: .
+    image: latex-preview:tl2023
+    container_name: latex-preview
+    restart: unless-stopped
+    user: "${UID:-1000}:${GID:-1000}"   # build output (.build/) owned by your user, not root
+    ports:
+      - "${PORT:-8090}:8090"              # binds all host addresses (LAN, VPN, ...)
+    environment:
+      LATEX_PREVIEW_PASSWORD: ${LATEX_PREVIEW_PASSWORD:?set LATEX_PREVIEW_PASSWORD in .env}
+    volumes:
+      - ./latex-preview.py:/app/latex-preview.py:ro   # edit script -> `docker compose restart`, no rebuild
+      - ${DOCS_DIR:?set DOCS_DIR in .env}:/docs       # documents shown in the picker (read-write: editor saves here)
