@@ -340,7 +340,7 @@ class Registry:
 
 
 PAGE = r"""<!doctype html><html><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>LaTeX editor</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
@@ -350,21 +350,21 @@ PAGE = r"""<!doctype html><html><head><meta charset="utf-8">
 :root{--bg:#525659;--bar:#1f2328;--fg:#e6e6e6;--ok:#3fb950;--err:#f85149;--busy:#d29922;--btn:#30363d;--acc:#388bfd;--side:#1b1e23}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:14px system-ui,sans-serif}
-body{display:flex;flex-direction:column}
+body{display:flex;flex-direction:column;overflow:hidden}
 .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:6px 12px;background:var(--bar)}
 #dot{width:10px;height:10px;border-radius:50%;background:var(--busy);flex:none}
 .bar a,.bar button,.bar select{color:var(--fg);background:var(--btn);border:0;border-radius:4px;padding:4px 8px;
  font:inherit;cursor:pointer;text-decoration:none}
 .bar button.on{background:var(--acc)}
 .bar button:disabled{opacity:.45;cursor:default}
-.bar select{max-width:min(50vw,340px)}
+.bar select{max-width:min(50vw,340px);min-width:0}
 .seg{display:flex;gap:2px}.seg button{border-radius:0}.seg button:first-child{border-radius:4px 0 0 4px}.seg button:last-child{border-radius:0 4px 4px 0}
 #errs{display:none;background:#3d1214;color:#ffd7d5;font:12px ui-monospace,monospace;padding:6px 12px;
  max-height:22vh;overflow:auto}
 #errs div{white-space:pre-wrap;padding:1px 0}
 #errs div.jump{cursor:pointer;text-decoration:underline dotted}
 #main{flex:1;display:flex;min-height:0}
-#edpane{flex:1;display:flex;flex-direction:column;min-width:0;border-right:2px solid #000}
+#edpane{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0;border-right:2px solid #000}
 #edbar{background:#262a30;padding:4px 12px}
 #edbody{flex:1;display:flex;min-height:0}
 #tree{width:210px;flex:none;overflow:auto;background:var(--side);border-right:1px solid #000;padding:4px 0;font-size:13px}
@@ -375,17 +375,32 @@ body{display:flex;flex-direction:column}
 body.notree #tree{display:none}
 #ed{flex:1;min-width:0}
 .CodeMirror{height:100%;font:13.5px/1.45 ui-monospace,"DejaVu Sans Mono",monospace}
-#pvpane{flex:1;overflow:auto;min-width:0;position:relative}
-#pages{display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px}
+#pvpane{flex:1;overflow:auto;min-width:0;min-height:0;position:relative;touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch}
+#pages{padding:12px;width:max-content;min-width:100%;transform-origin:0 0}
 #empty{padding:40px 16px;text-align:center;opacity:.8}
-.page{position:relative;flex:none;box-shadow:0 2px 8px #0008;background:#fff}
-.page canvas{display:block;width:100%;height:100%}
+.page{position:relative;margin:0 auto 10px;box-shadow:0 2px 8px #0008;background:#fff}
+.page canvas{position:absolute;inset:0;width:100%;height:100%}
 .textLayer{opacity:1}
 body.v-vis .textLayer span{cursor:text;border-radius:2px}
 body.v-vis .textLayer span:hover{background:rgba(56,139,253,.18);outline:1px solid rgba(56,139,253,.5)}
 .textLayer span.pending{color:#000;background:#fff6c2!important}
-.vedit{position:absolute;z-index:5;background:#fff;color:#000;border:2px solid var(--acc);border-radius:3px;
+.lnk{position:absolute;z-index:4;border-radius:2px;cursor:pointer}
+.lnk:hover{background:rgba(56,139,253,.15)}
+body.v-vis .lnk{pointer-events:none}
+.hl{position:absolute;z-index:3;pointer-events:none;background:rgba(255,212,0,.45);mix-blend-mode:multiply;border-radius:2px}
+.hl.cur{background:rgba(255,110,0,.6)}
+.flash{position:absolute;left:0;right:0;height:3px;z-index:5;background:var(--acc);pointer-events:none;animation:fl 1.6s forwards}
+@keyframes fl{from{opacity:1}to{opacity:0}}
+.vedit{position:absolute;z-index:6;background:#fff;color:#000;border:2px solid var(--acc);border-radius:3px;
  padding:0 3px;font-family:"TeX Gyre Pagella","Palatino Linotype",Palatino,Georgia,serif;outline:none;box-shadow:0 4px 14px #0006}
+#find{position:sticky;top:0;left:0;z-index:10;display:none;gap:6px;align-items:center;padding:6px 10px;background:#2a2f37;
+ box-shadow:0 2px 6px #0006;width:100%}
+#find.open{display:flex}
+#find input{flex:1;min-width:60px;max-width:420px;background:#111;color:#fff;border:1px solid #555;border-radius:4px;padding:5px 8px;font:inherit}
+#find button{color:var(--fg);background:var(--btn);border:0;border-radius:4px;padding:5px 9px;font:inherit;cursor:pointer}
+#fcount{opacity:.8;min-width:56px;font-size:13px}
+#back{position:fixed;right:16px;bottom:18px;z-index:15;display:none;background:var(--acc);color:#fff;border:0;border-radius:20px;
+ padding:9px 16px;font:inherit;box-shadow:0 4px 14px #0008;cursor:pointer}
 #toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#111;color:#fff;padding:8px 14px;
  border-radius:6px;box-shadow:0 4px 14px #0008;display:none;z-index:20;max-width:min(90vw,640px)}
 #toast.err{background:#5a1418}
@@ -393,23 +408,39 @@ body.v-vis .textLayer span:hover{background:rgba(56,139,253,.18);outline:1px sol
 body.v-vis #hint{display:block}
 body.v-edit #pvpane,body.v-pv #edpane,body.v-vis #edpane{display:none}
 body.v-edit #edpane{border:0}
+body.v-edit #fb,body.v-edit #zoomgrp{display:none}
 #saved{opacity:.8}#saved.dirty{color:var(--busy);opacity:1}#saved.bad{color:var(--err);opacity:1}
+#zoomgrp{display:flex;gap:4px;align-items:center}
 .sp{flex:1}
+@media (max-width:800px){
+ .bar{gap:6px;padding:5px 8px}
+ .hide-m{display:none!important}
+ #main{flex-direction:column}
+ #edpane{border-right:0;border-bottom:2px solid #000}
+ body.v-both #edpane{flex:0 0 42%}
+ .bar select{max-width:46vw}
+ #hint{font-size:12px}
+}
 </style></head><body>
 <div class="bar"><span id="dot"></span><select id="doc"><option value="">— choose document —</option></select>
-<span id="st"></span><span class="sp"></span>
+<span id="st" class="hide-m"></span><span class="sp"></span>
 <span class="seg"><button id="vEd" title="source editor only">Edit</button><button id="vBoth" title="source + preview (double-click PDF = jump to source)">Both</button><button id="vPv" title="preview only">Preview</button><button id="vVis" title="click text in the PDF and edit it in place">Visual</button></span>
-<button id="zo">−</button><span id="zv">100%</span><button id="zi">+</button>
-<button id="rb">Rebuild</button><a id="lp" href="#" target="_blank">PDF</a><a id="ll" href="#" target="_blank">Log</a></div>
+<button id="fb" title="search in document (Ctrl+F)">🔍</button>
+<span id="zoomgrp"><button id="zo" title="zoom out">−</button><button id="zf" title="fit page width">Fit</button><button id="zi" title="zoom in">+</button><span id="zv" class="hide-m"></span></span>
+<button id="rb" title="rebuild">⟳<span class="hide-m"> Rebuild</span></button><a id="lp" class="hide-m" href="#" target="_blank">PDF</a><a id="ll" class="hide-m" href="#" target="_blank">Log</a></div>
 <div id="errs"></div>
 <div id="hint">Visual mode: click any text in the document to edit it, Enter = save, Esc = cancel. The page rebuilds in ~10 s; edited text is shown highlighted until then.</div>
 <div id="main">
  <div id="edpane"><div class="bar" id="edbar"><button id="tt" title="show/hide file list">Files</button><select id="file"></select>
   <button id="save" disabled>Save</button><label><input type="checkbox" id="auto"> autosave</label>
-  <span id="saved"></span><span class="sp"></span><span style="opacity:.55;font-size:12px">Ctrl+click \input{…} to open</span></div>
+  <span id="saved"></span><span class="sp"></span><span class="hide-m" style="opacity:.55;font-size:12px">Ctrl+click \input{…} to open</span></div>
   <div id="edbody"><div id="tree"></div><div id="ed"></div></div></div>
- <div id="pvpane"><div id="pages"><div id="empty">Choose a document above.</div></div></div>
+ <div id="pvpane">
+  <div id="find"><input id="fq" type="search" placeholder="Search in document…" autocomplete="off" enterkeyhint="search">
+   <span id="fcount"></span><button id="fp" title="previous (Shift+Enter)">↑</button><button id="fn" title="next (Enter)">↓</button><button id="fx" title="close (Esc)">✕</button></div>
+  <div id="pages"><div id="empty">Choose a document above.</div></div></div>
 </div>
+<button id="back" title="back to where you were before following the link">↩ Back</button>
 <div id="toast"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
@@ -422,9 +453,12 @@ body.v-edit #edpane{border:0}
 pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 const $=id=>document.getElementById(id),store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},
  set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const pane=$("pvpane");
 let doc=new URLSearchParams(location.search).get("doc")||store.get("lp-doc")||"",ver=-1,rendering=false,again=false,
- scale=parseFloat(store.get("lp-scale")||"0"),timer=null,file="",mtime="0",clean=0,autoT=null,saving=false,files=[],mode="both";
+ fit=!store.get("lp-scale")||store.get("lp-scale")==="fit",scale=fit?0:parseFloat(store.get("lp-scale"))||0,
+ timer=null,file="",mtime="0",clean=0,autoT=null,saving=false,files=[],mode="both",pdfDoc=null,boxes=[],observer=null;
 const q=()=>"doc="+encodeURIComponent(doc),fq=f=>q()+"&path="+encodeURIComponent(f);
+const DPR=()=>Math.min(window.devicePixelRatio||1,2),clampS=s=>Math.max(.3,Math.min(5,s));
 const cm=CodeMirror($("ed"),{mode:"stex",theme:"material-darker",lineNumbers:true,lineWrapping:true,
  matchBrackets:true,indentUnit:2,extraKeys:{"Ctrl-S":()=>save(),"Cmd-S":()=>save()}});
 cm.setOption("readOnly","nocursor");
@@ -436,13 +470,37 @@ function toast(msg,err,ms){const t=$("toast");t.textContent=msg;t.className=err?
 // ---- view / zoom ----
 function view(v){const prev=mode;mode=v;document.body.className="v-"+v+(store.get("lp-tree")==="0"||innerWidth<700?" notree":"");store.set("lp-view",v);
  for(const [id,n] of [["vEd","edit"],["vBoth","both"],["vPv","pv"],["vVis","vis"]])$(id).classList.toggle("on",n===v);
- cm.refresh();if(ver>0&&v!=="edit"&&(prev==="edit"||(prev==="vis")!==(v==="vis")))render(ver)}
+ cm.refresh();if(ver>0&&v!=="edit"&&(prev==="edit"||fit||prev===undefined))render(ver)}
 $("vEd").onclick=()=>view("edit");$("vBoth").onclick=()=>view("both");$("vPv").onclick=()=>view("pv");$("vVis").onclick=()=>view("vis");
 $("tt").onclick=()=>{store.set("lp-tree",document.body.classList.toggle("notree")?"0":"1");cm.refresh()};
 view(store.get("lp-view")||(innerWidth<800?"pv":"both"));
-function zoom(f){scale=Math.max(.4,Math.min(4,(scale||1.3)*f));store.set("lp-scale",scale);if(ver>0)render(ver)}
-$("zi").onclick=()=>zoom(1.15);$("zo").onclick=()=>zoom(1/1.15);
+function setScale(s,keep){scale=clampS(s);fit=false;store.set("lp-scale",scale);if(ver>0)render(ver,keep)}
+// zoom by factor r keeping the content point under (cx,cy) fixed
+function zoomAt(r,cx,cy){
+ const pr=pane.getBoundingClientRect();if(cx==null){cx=pr.left+pane.clientWidth/2;cy=pr.top+pane.clientHeight/2}
+ const ns=clampS(scale*r);r=ns/scale;const px=cx-pr.left,py=cy-pr.top;
+ setScale(ns,{top:(pane.scrollTop+py)*r-py,left:(pane.scrollLeft+px)*r-px});
+}
+$("zi").onclick=()=>zoomAt(1.2);$("zo").onclick=()=>zoomAt(1/1.2);
+$("zf").onclick=()=>{fit=true;store.set("lp-scale","fit");if(ver>0)render(ver)};
 $("rb").onclick=()=>doc&&fetch("/rebuild?"+q(),{method:"POST"});
+let resizeT=null;
+addEventListener("resize",()=>{clearTimeout(resizeT);resizeT=setTimeout(()=>{if(fit&&ver>0&&mode!=="edit")render(ver)},250)});
+// pinch zoom (touch) and Ctrl+wheel zoom (desktop): live CSS preview, re-render at the end
+let pinch=null,wheel=null;
+const dist=(a,b)=>Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
+function previewZoom(r,cx,cy){const pr=pane.getBoundingClientRect(),pg=$("pages");
+ pg.style.transformOrigin=(pane.scrollLeft+cx-pr.left)+"px "+(pane.scrollTop+cy-pr.top)+"px";pg.style.transform="scale("+r+")"}
+pane.addEventListener("touchstart",e=>{if(e.touches.length===2){const[a,b]=e.touches;
+ pinch={d:dist(a,b),cx:(a.clientX+b.clientX)/2,cy:(a.clientY+b.clientY)/2,r:1}}},{passive:true});
+pane.addEventListener("touchmove",e=>{if(pinch&&e.touches.length===2){e.preventDefault();const[a,b]=e.touches;
+ pinch.r=clampS(scale*dist(a,b)/pinch.d)/scale;previewZoom(pinch.r,pinch.cx,pinch.cy)}},{passive:false});
+pane.addEventListener("touchend",e=>{if(pinch&&e.touches.length<2){const p=pinch;pinch=null;$("pages").style.transform="";
+ if(Math.abs(p.r-1)>.03)zoomAt(p.r,p.cx,p.cy)}});
+pane.addEventListener("wheel",e=>{if(!(e.ctrlKey||e.metaKey))return;e.preventDefault();
+ if(!wheel)wheel={r:1,cx:e.clientX,cy:e.clientY};wheel.r=clampS(scale*wheel.r*Math.exp(-e.deltaY/600))/scale;
+ previewZoom(wheel.r,wheel.cx,wheel.cy);clearTimeout(wheel.t);
+ wheel.t=setTimeout(()=>{const w=wheel;wheel=null;$("pages").style.transform="";zoomAt(w.r,w.cx,w.cy)},220)},{passive:false});
 
 // ---- editor ----
 $("auto").checked=store.get("lp-auto")!=="0";
@@ -518,34 +576,134 @@ addEventListener("beforeunload",e=>{if(dirty()){e.preventDefault();e.returnValue
 function select(d,user){
  doc=d;ver=-1;store.set("lp-doc",d);history.replaceState(null,"",d?"?"+q():"/");
  $("lp").href="/pdf?"+q();$("ll").href="/log?"+q();document.title=d?d.split("/").pop()+" — LaTeX":"LaTeX editor";
- if(user){$("pvpane").scrollTop=0;$("pages").innerHTML='<div id="empty">'+(d?"Building…":"Choose a document above.")+'</div>'}
+ if(user){pane.scrollTop=0;backStack=[];$("back").style.display="none";
+  $("pages").innerHTML='<div id="empty">'+(d?"Building…":"Choose a document above.")+'</div>'}
  clearTimeout(timer);poll();loadFiles();
 }
-async function render(v){
- if(mode==="edit")return;if(rendering){again=true;return}rendering=true;const d=doc,pane=$("pvpane"),vis=mode==="vis";
+async function drawCanvas(box){
+ if(box._drawn)return;box._drawn=true;
+ const hi=box._pg.getViewport({scale:parseFloat(box.dataset.scale)*DPR()}),c=document.createElement("canvas");
+ c.width=hi.width;c.height=hi.height;
+ try{await box._pg.render({canvasContext:c.getContext("2d"),viewport:hi}).promise;box.insertBefore(c,box.firstChild)}
+ catch(e){box._drawn=false}
+}
+// Every page gets: lazy canvas, text layer (search, selection, visual edit), link layer (TOC, \ref, glossary, URLs)
+async function render(v,keep){
+ if(mode==="edit")return;if(rendering){again=true;return}rendering=true;const d=doc;
  try{
   const pdf=await pdfjsLib.getDocument({url:"/pdf?"+q()+"&v="+v,isEvalSupported:false}).promise;
-  if(!scale){const vp1=(await pdf.getPage(1)).getViewport({scale:1});scale=Math.max(.5,Math.min(1.6,(pane.clientWidth-40)/vp1.width))}
-  const y=pane.scrollTop,frag=document.createDocumentFragment(),dpr=window.devicePixelRatio||1;
+  if(fit||!scale){const vp1=(await pdf.getPage(1)).getViewport({scale:1});
+   scale=clampS((pane.clientWidth-(innerWidth<800?12:28))/vp1.width)}
+  const y=keep?keep.top:pane.scrollTop,x=keep?keep.left:pane.scrollLeft;
+  const wrap=document.createElement("div");wrap.id="pages";if(innerWidth<800)wrap.style.padding="6px";
+  const nb=[];
   for(let i=1;i<=pdf.numPages;i++){
-   const pg=await pdf.getPage(i),vp=pg.getViewport({scale}),hi=pg.getViewport({scale:scale*dpr});
+   const pg=await pdf.getPage(i),vp=pg.getViewport({scale});
    const box=document.createElement("div");box.className="page";box.style.width=vp.width+"px";box.style.height=vp.height+"px";
-   box.dataset.page=i;box.dataset.scale=scale;
-   const c=document.createElement("canvas");c.width=hi.width;c.height=hi.height;box.appendChild(c);
-   await pg.render({canvasContext:c.getContext("2d"),viewport:hi}).promise;
-   if(vis){const tl=document.createElement("div");tl.className="textLayer";tl.style.setProperty("--scale-factor",scale);box.appendChild(tl);
-    await pdfjsLib.renderTextLayer({textContentSource:await pg.getTextContent(),container:tl,viewport:vp,textDivs:[]}).promise}
-   frag.appendChild(box);
+   box.dataset.page=i;box.dataset.scale=scale;box._pg=pg;box._vp=vp;
+   const tl=document.createElement("div");tl.className="textLayer";tl.style.setProperty("--scale-factor",scale);box.appendChild(tl);
+   await pdfjsLib.renderTextLayer({textContentSource:await pg.getTextContent(),container:tl,viewport:vp,textDivs:[]}).promise;
+   for(const a of await pg.getAnnotations({intent:"display"})){
+    if(a.subtype!=="Link"||!(a.dest||a.url))continue;
+    const[x1,y1,x2,y2]=vp.convertToViewportRectangle(a.rect),el=document.createElement("a");el.className="lnk";
+    Object.assign(el.style,{left:Math.min(x1,x2)+"px",top:Math.min(y1,y2)+"px",width:Math.abs(x2-x1)+"px",height:Math.abs(y2-y1)+"px"});
+    if(a.url){el.href=a.url;el.target="_blank";el.rel="noopener";el.title=a.url}
+    else{el.href="#";el.onclick=e=>{e.preventDefault();goDest(a.dest)}}
+    box.appendChild(el);
+   }
+   nb.push(box);wrap.appendChild(box);
   }
-  if(d===doc){$("pages").replaceChildren(frag);pane.scrollTop=y}
-  $("zv").textContent=Math.round(scale/1.3*100)+"%";
- }catch(e){$("st").textContent="render error: "+e}
- rendering=false;if(again){again=false;render(ver)}
+  if(d!==doc){pdf.destroy();return}
+  // draw the pages that will be visible before swapping, so the preview does not flash
+  let top=parseFloat(wrap.style.padding||12);
+  for(const b of nb){const h=b._vp.height;if(top+h>y-100&&top<y+pane.clientHeight+100)await drawCanvas(b);top+=h+10}
+  if(observer)observer.disconnect();
+  $("pages").replaceWith(wrap);pane.scrollTop=y;pane.scrollLeft=x;
+  const old=pdfDoc;pdfDoc=pdf;boxes=nb;if(old)old.destroy();
+  observer=new IntersectionObserver(es=>{for(const e of es)if(e.isIntersecting)drawCanvas(e.target)},{root:pane,rootMargin:"1200px 0px"});
+  for(const b of nb)observer.observe(b);
+  $("zv").textContent=Math.round(scale*100)+"%"+(fit?" (fit)":"");$("zf").classList.toggle("on",fit);
+  if(F.q)runSearch(true);
+ }catch(e){$("st").textContent="render error: "+e;console.error(e)}
+ finally{rendering=false}
+ if(again){again=false;render(ver)}
 }
+// ---- internal links + back ----
+let backStack=[];
+async function goDest(dest){
+ try{
+  const exp=typeof dest==="string"?await pdfDoc.getDestination(dest):dest;if(!exp)return toast("link target not found",true);
+  const idx=typeof exp[0]==="object"?await pdfDoc.getPageIndex(exp[0]):exp[0],box=boxes[idx];if(!box)return;
+  const kind=exp[1]&&exp[1].name;let left=0,top=null;
+  if(kind==="XYZ"){left=exp[2]||0;top=exp[3]}else if(kind==="FitH"||kind==="FitBH"){top=exp[2]}else if(kind==="FitR"){left=exp[2];top=exp[5]}
+  const yy=top==null?0:Math.max(0,box._vp.convertToViewportPoint(left,top)[1]);
+  backStack.push(pane.scrollTop);$("back").style.display="block";
+  pane.scrollTo({top:box.offsetTop+yy-12});
+  const f=document.createElement("div");f.className="flash";f.style.top=yy+"px";box.appendChild(f);setTimeout(()=>f.remove(),1700);
+ }catch(e){toast("cannot follow link: "+e,true)}
+}
+$("back").onclick=()=>{if(backStack.length)pane.scrollTo({top:backStack.pop()});if(!backStack.length)$("back").style.display="none"};
 function pdfPoint(box,cx,cy){const r=box.getBoundingClientRect(),s=parseFloat(box.dataset.scale);
  return {page:+box.dataset.page,x:(cx-r.left)/s,y:(cy-r.top)/s}}
+
+// ---- search in the preview ----
+const F={q:"",hits:[],cur:-1};
+function pageText(box){
+ if(box._txt)return box._txt;let str="";const map=[];
+ for(const s of box.querySelectorAll(".textLayer span")){const t=s.firstChild;if(!t||t.nodeType!==3||s.childNodes.length!==1)continue;
+  map.push([str.length,s]);str+=t.data}
+ return box._txt={str,map};
+}
+function hitRects(h){
+ const {map}=pageText(h.box),out=[];
+ for(const [off,s] of map){const len=s.firstChild.data.length;if(off+len<=h.a)continue;if(off>=h.b)break;
+  const r=document.createRange();r.setStart(s.firstChild,Math.max(0,h.a-off));r.setEnd(s.firstChild,Math.min(len,h.b-off));out.push(...r.getClientRects())}
+ return out;
+}
+function clearHits(){for(const h of F.hits)for(const el of h.els||[])el.remove()}
+function drawHit(h){
+ const br=h.box.getBoundingClientRect(),k=br.width/h.box.offsetWidth||1;h.els=[];
+ for(const r of hitRects(h)){const d=document.createElement("div");d.className="hl";
+  Object.assign(d.style,{left:(r.left-br.left)/k-1+"px",top:(r.top-br.top)/k-1+"px",width:r.width/k+2+"px",height:r.height/k+2+"px"});
+  h.box.appendChild(d);h.els.push(d)}
+}
+function runSearch(keep){
+ clearHits();const prev=F.cur;F.hits=[];F.cur=-1;const qs=F.q.trim();
+ if(!qs||!boxes.length){$("fcount").textContent=qs?"":"";return}
+ const rx=new RegExp(qs.split(/\s+/).map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("\\s*"),"giu");
+ for(const box of boxes){for(const m of pageText(box).str.matchAll(rx)){if(!m[0].length)continue;
+  F.hits.push({box,a:m.index,b:m.index+m[0].length});if(F.hits.length>=5000)break}}
+ for(const h of F.hits.slice(0,2000))drawHit(h);
+ if(!F.hits.length){$("fcount").textContent="0 / 0";return}
+ if(keep&&prev>=0)F.cur=Math.min(prev,F.hits.length-1);
+ else{const y=pane.scrollTop;F.cur=Math.max(0,F.hits.findIndex(h=>h.box.offsetTop+h.box.offsetHeight>y))}
+ showHit(!keep);
+}
+function showHit(scroll){
+ for(const h of F.hits)for(const el of h.els||[])el.classList.remove("cur");
+ const h=F.hits[F.cur];if(!h)return;if(!h.els)drawHit(h);
+ for(const el of h.els)el.classList.add("cur");$("fcount").textContent=(F.cur+1)+" / "+F.hits.length;
+ if(scroll&&h.els[0]){const t=h.box.offsetTop+h.els[0].offsetTop,l=h.box.offsetLeft+h.els[0].offsetLeft;
+  if(t<pane.scrollTop+60||t>pane.scrollTop+pane.clientHeight-60)pane.scrollTo({top:t-pane.clientHeight/3});
+  if(l<pane.scrollLeft||l>pane.scrollLeft+pane.clientWidth-40)pane.scrollLeft=l-40}
+}
+function step(d){if(!F.hits.length)return;F.cur=(F.cur+d+F.hits.length)%F.hits.length;showHit(true)}
+function openFind(){if(mode==="edit")view(innerWidth<800?"pv":"both");$("find").classList.add("open");$("fq").focus();$("fq").select()}
+function closeFind(){$("find").classList.remove("open");clearHits();F.hits=[];F.q="";$("fcount").textContent=""}
+let findT=null;
+$("fq").addEventListener("input",()=>{clearTimeout(findT);findT=setTimeout(()=>{F.q=$("fq").value;runSearch(false)},200)});
+$("fq").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();if(F.q!==$("fq").value){F.q=$("fq").value;runSearch(false)}else step(e.shiftKey?-1:1)}
+ else if(e.key==="Escape")closeFind()});
+$("fn").onclick=()=>step(1);$("fp").onclick=()=>step(-1);$("fx").onclick=closeFind;$("fb").onclick=()=>$("find").classList.contains("open")?closeFind():openFind();
+document.addEventListener("keydown",e=>{
+ if((e.ctrlKey||e.metaKey)&&!e.altKey&&e.key.toLowerCase()==="f"){
+  if(cm.hasFocus()&&mode!=="pv"&&mode!=="vis")return;  // editor has its own search
+  e.preventDefault();openFind()}
+ else if(e.key==="F3"||((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="g")){if(F.hits.length){e.preventDefault();step(e.shiftKey?-1:1)}}
+});
+
 // double-click the PDF (Both/Preview) -> open source at that spot
-$("pages").addEventListener("dblclick",async e=>{
+$("pvpane").addEventListener("dblclick",async e=>{
  if(mode==="vis")return;const box=e.target.closest(".page");if(!box)return;const p=pdfPoint(box,e.clientX,e.clientY);
  const j=await (await fetch(`/synctex?${q()}&page=${p.page}&x=${p.x}&y=${p.y}`)).json();
  if(!j.file){toast("no source found for that spot",true);return}
@@ -553,7 +711,7 @@ $("pages").addEventListener("dblclick",async e=>{
 });
 // Visual mode: click a text run -> inline editor
 let editing=null;
-$("pages").addEventListener("click",e=>{
+$("pvpane").addEventListener("click",e=>{
  if(mode!=="vis"||editing)return;const span=e.target.closest(".textLayer span");if(!span||!span.textContent.trim())return;
  e.preventDefault();startEdit(span);
 });
@@ -593,14 +751,14 @@ async function poll(){
  if(!doc){$("st").textContent="";$("dot").style.background="var(--btn)";$("errs").style.display="none";return}
  try{
   const r=await fetch("/status?"+q());if(!r.ok)throw r.status;const s=await r.json();
-  $("dot").style.background={ok:"var(--ok)",error:"var(--err)"}[s.status]||"var(--busy)";
+  $("dot").style.background={ok:"var(--ok)",error:"var(--err)"}[s.status]||"var(--busy)";$("dot").title=s.status;
   $("st").textContent=s.status+(s.finished?" · "+s.finished+" ("+s.duration+"s)":"")+" · "+s.engine;
   const key=JSON.stringify(s.errors);
   if(key!==shownErrs){shownErrs=key;const box=$("errs");box.replaceChildren();box.style.display=s.errors.length?"block":"none";
    for(const e of s.errors){const div=document.createElement("div");div.textContent=e.msg;
     if(e.file){div.className="jump";div.title="open "+e.file+":"+e.line;div.onclick=()=>{if(mode!=="both"&&mode!=="edit")view("both");openFile(e.file,false,e.line)}}
     box.appendChild(div)}}
-  if(s.version!==ver&&s.version>0&&!editing){ver=s.version;await render(ver)}
+  if(s.version!==ver&&s.version>0&&!editing&&!pinch&&!wheel){ver=s.version;await render(ver)}
  }catch(e){$("st").textContent="server unreachable";$("dot").style.background="var(--err)"}
  timer=setTimeout(poll,1000);
 }

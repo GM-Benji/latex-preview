@@ -10,6 +10,11 @@ Self-hosted LaTeX editor with live PDF preview — a small, single-file alternat
 - **Visual mode** — click text in the rendered PDF and edit it in place; the change is mapped back to the
   right source file and line via SyncTeX and only the changed words are replaced.
 - **Double-click the PDF** to jump to the corresponding source line.
+- **Search** in the preview (Ctrl+F or 🔍): highlights all matches, Enter / Shift+Enter to step through them.
+- **Clickable links** inside the PDF: table of contents, `\ref`, citations, glossary/acronym links, URLs; a
+  *Back* button returns to where you were.
+- **Phone friendly**: fit-to-width by default, pinch-to-zoom (Ctrl+wheel on desktop), pages render lazily,
+  compact toolbar, editor and preview stacked vertically on narrow screens.
 - Password protection (HTTP Basic).
 
 Build pipeline (per document, output in `<doc dir>/.build/`, sources untouched):
